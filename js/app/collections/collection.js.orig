@@ -1,0 +1,10 @@
+define(['jquery', 'underscore', 'backbone', 'model'], function($, _, Backbone, model) {
+    var Collection = Backbone.Collection.extend({
+        initialize: function() {
+                        console.log("collection initialized");
+                    },
+        model: model, 
+        url: "http://api.wunderground.com/api/f4de0f94a19a7665/alerts/almanac/astronomy/conditions/currenthurricane/forecast/forecast/10day/geolookup/history/history10day/satellite/webcams/q/ca/berkeley.json?callback=?"
+    });
+    return Collection;
+});

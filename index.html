@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Backbone - Bakersfield</title> 
+        <link type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+        <link type="text/css" href="css/main.css" rel="stylesheet" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10">
+                    <h1 id="title"><!--Bakersfield Weather--></h1> 
+                    <div id="alertsView"></div>
+                    <hr/>
+                    <div id="conditionsView"></div>
+                    <hr/>
+                    <div id="forecastView"></div>
+                    <hr/>
+                    <div id="hourlyView"></div>
+                    <hr/>
+
+                    <script id="alertsView-template" type="text/template">
+                        <div class="row">
+                            <div style="margin:0 0 20px 0;">Alerts</div>
+                            <% _.each(alerts, function(data) { %>
+                                <div class="col-md-12">
+                                    <div><%= data.description %></div>
+                                    <div>Issued:&nbsp;<%= data.date %></div>
+                                    <div>Expires:&nbsp;<%= data.expires %></div>
+                                    <div><%= data.message %></div>
+                                </div>
+                                <% }); %>
+                        </div>
+                    </script>
+
+                    <script id="conditionsView-template" type="text/template">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div><%= current_observation.display_location.full %></div>
+                                <div><img style="margin-left:auto;margin-right:auto;width:100px;" src='img/<%= current_observation.icon %>'/></div>
+                                <div><%= current_observation.weather %></div>
+                                <div><%= current_observation.display_location.latitude %>&nbsp;&deg;N&nbsp;<%= current_observation.display_location.longitude %>&nbsp;&deg;W | <%= current_observation.observation_time %></div>
+                                <div>Sun & Moon</div>
+                                <ul>
+                                    <li>Sunrise:&nbsp;<%= moon_phase.sunrise.hour %>:<%= moon_phase.sunrise.minute %>AM</li>
+                                    <li>Sunset:&nbsp;<%= moon_phase.sunset.hour %>:<%= moon_phase.sunset.minute %>PM</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <img src="<%= radar.image_url %>" />
+                            </div>
+                        </div>
+                    </script>
+
+                    <script id="forecastView-template" type="text/template">
+                        <div style="margin:0 0 20px 0;">Five Day Forecast</div>
+                        <div class="row">
+                            <% var i = 0; %>
+                            <% _.each(forecast.simpleforecast.forecastday, function(d) { %>
+                                <div class="col-md-2 day_<%= i %>">
+                                    <% if (i < 6) { %>
+                                        <% if (i == 0) { %>
+                                            <div style="text-align:center">Today&nbsp;<%= d.date.month %>/<%= d.date.day %></div>
+                                            <div style="text-align:center"><%= d.high.fahrenheit %>&deg;&nbsp;|&nbsp;<%= d.low.fahrenheit %>&deg;</div>
+                                            <div style="margin-left:auto;margin-right:auto;width:100px;"><img style="margin-left:auto;margin-right:auto;width:100px;" src='img/<%= d.icon %>'/></div>
+                                            <div style="text-align:center"><%= d.conditions %></div>
+                                            <% ++i; %>
+                                            <% } else { %>
+                                            <div style="text-align:center"><%= d.date.weekday %>&nbsp;<%= d.date.month %>/<%= d.date.day %></div>
+                                            <div style="text-align:center"><%= d.high.fahrenheit %>&deg;&nbsp;|&nbsp;<%= d.low.fahrenheit %>&deg;</div>
+                                            <div style="margin-left:auto;margin-right:auto;width:100px;"><img style="margin-left:auto;margin-right:auto;width:100px;" src='img/<%= d.icon %>'/></div>
+                                            <div style="text-align:center"><%= d.conditions %></div>
+                                            <% ++i; %>
+                                            <% } %>
+                                        <% } %>
+                                </div>
+                                <% }); %>
+                        </div>
+                        <% var k = 1; %>
+                        <% _.each(forecast.txt_forecast.forecastday, function(d) { %>
+                            <% if(k <= 12) { %>
+                                <div class="row">
+                                    <div class="col-md-5" id="day_<%= k %>">
+                                        <div style="font-weight:bold"><%= d.title %></div>
+                                        <div><%= d.fcttext %></div>
+                                        <% ++k; %>
+                                    </div>
+                                </div>
+                                <% ++i; %>
+                                <% } %>
+                            <% }); %>
+                    </script>
+                    <script id="hourlyView-template" type="text/template">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div>Time</div>
+                            </div>
+                            <div class="col-md-1">
+                                <div>Temp.</div>
+                            </div>
+                            <div class="col-md-1">
+                                <div>Humidity</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div>Conditions</div>
+                            </div>
+                            <div class="col-md-2">
+                                <div>Wind</div>
+                            </div>
+                            <div class="col-md-2">
+                                <div>Precip.</div>
+                            </div>
+                        </div>
+                        <% var i = 0; %>
+                        <div class="nav nav-tabs">
+                            <% _.each(hourly_forecast, function(hourly) { %>
+                                <% var yday = hourly.FCTTIME.yday %>
+                                <% if(((parseInt(hourly.FCTTIME.yday)) == yday) && i <= 4) { %>
+                                    <% if (parseInt(hourly.FCTTIME.hour) == 0) { %>
+                                        <% i++; %>
+                                        <a href="#<%= hourly.FCTTIME.yday %>" data-toggle="tab"><%= hourly.FCTTIME.weekday_name %></a>
+                                        <div class="tab-pane" id="hourly_day_<%= i %>"/>
+                                    <% } %>
+                                    <div class="row hourly_day_<%= i %>">
+                                        <div class="col-md-2">
+                                            <div><%= hourly.FCTTIME.civil %></div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <div><%= hourly.temp.english %>&deg;</div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <div><%= hourly.humidity %>%</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div><img src="img/<%= hourly.icon %>" />&nbsp;<%= hourly.condition %></div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div><%= hourly.wspd.english %>mph&nbsp;<%= hourly.wdir.dir %></div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div><%= hourly.pop %>%</div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                <% }); %>
+                        </div>
+                    </script>
+                    <script id="almanacView-template" type="text/template"></script>
+                    <script id="astronomyView-template" type="text/template"></script>
+                    <script id="conditionsView-template" type="text/template"></script>
+                    <script id="hurricaneView-template" type="text/template"></script>
+                    <script id="forecastView-template" type="text/template"></script>
+                    <script id="forecast10dayView-template" type="text/template"></script>
+                    <script id="geolookupView-template" type="text/template"></script>
+                    <script id="historyView-template" type="text/template"></script>
+                    <script id="hourlyView-template" type="text/template"></script>
+                    <script id="hourly10dayView-template" type="text/template"></script>
+                    <script id="satelliteView-template" type="text/template"></script>
+                    <script id="webcamsView-template" type="text/template"></script>
+                    <script data-main="js/main" src="bower_components/requirejs/require.js"></script>
+                </div>
+            </div>
+        </div>
+        </body>
+        </html>

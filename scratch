@@ -1,0 +1,34 @@
+
+                        <% 
+                          var list = _.size(hourly_forecast) 
+                          var i = 0;  
+                        %>
+                        <%= list %>
+
+
+                        <%= result = 23 - parseInt(hourly_forecast[0].FCTTIME.hour) %>
+                        <% _.each(hourly_forecast, function(hourly) { %>
+                            <% if(i <= result) { %>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div><%= hourly.FCTTIME.civil %></div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div><%= hourly.temp.english %>&deg;</div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div><%= hourly.humidity %>%</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div><img src="img/<%= hourly.icon %>" />&nbsp;<%= hourly.condition %></div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div><%= hourly.wspd.english %>mph&nbsp;<%= hourly.wdir.dir %></div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div><%= hourly.pop %>%</div>
+                                </div>
+                            </div>
+                            <% i++; %>
+                            <% } %>
+                            <% }); %>
